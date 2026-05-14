@@ -2,7 +2,7 @@ import React, {
   useEffect,
   useState,
 } from "react";
-import logo from "../images/logo.jpeg";
+import logo from "../images/Logo.jpeg";
 import { Link } from "react-router-dom";
 import {
   CartContext,
