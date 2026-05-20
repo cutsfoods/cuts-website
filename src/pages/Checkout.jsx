@@ -15,6 +15,8 @@ import {
 
 import AddressModal
   from "../components/AddressModal";
+  import AddAddressModal
+  from "../components/AddAddressModal";
 
 export default function Checkout() {
 
@@ -52,11 +54,28 @@ const handlingFee = 0;
   const [deliveryAddress,
     setDeliveryAddress] =
     React.useState("");
+const [savedAddresses,
+  setSavedAddresses] =
+  React.useState([]);
 
   const [isAddressModalOpen,
     setIsAddressModalOpen] =
     React.useState(false);
+const [isAddAddressOpen,
+  setIsAddAddressOpen] =
+  React.useState(false);
+    React.useEffect(() => {
 
+  const addresses =
+    JSON.parse(
+      localStorage.getItem(
+        "savedAddresses"
+      )
+    ) || [];
+
+  setSavedAddresses(addresses);
+
+}, []);
   const placeOrder = async () => {
 
     if (!deliveryAddress) {
@@ -68,7 +87,44 @@ const handlingFee = 0;
       return;
 
     }
+React.useEffect(() => {
 
+  const handleSavedAddress =
+  () => {
+
+    setIsAddressModalOpen(
+      false
+    );
+
+    setIsAddressModalOpen(
+  false
+);
+
+setTimeout(() => {
+
+  setIsAddAddressOpen(
+    true
+  );
+
+}, 100);
+
+  };
+
+  window.addEventListener(
+    "openSavedAddress",
+    handleSavedAddress
+  );
+
+  return () => {
+
+    window.removeEventListener(
+      "openSavedAddress",
+      handleSavedAddress
+    );
+
+  };
+
+}, []);
     try {
 
       const orderId =
@@ -466,7 +522,9 @@ localStorage.setItem(
         </div>
 
       </div>
-
+const [isAddAddressOpen,
+  setIsAddAddressOpen] =
+  React.useState(false);
       <AddressModal
         isOpen={
           isAddressModalOpen
@@ -476,16 +534,47 @@ localStorage.setItem(
             false
           )
         }
-        onSelectAddress={(
-          address
-        ) => {
+      onSelectAddress={(address) => {
 
-          setDeliveryAddress(
-            address
-          );
+  setDeliveryAddress(
+    address
+  );
 
-        }}
+  setIsAddressModalOpen(
+    false
+  );
+
+  setTimeout(() => {
+
+    setIsAddAddressOpen(
+      true
+    );
+
+  }, 200);
+
+}}
+
       />
+<AddAddressModal
+  isOpen={
+    isAddAddressOpen
+  }
+
+  selectedAddress={
+    deliveryAddress
+  }
+
+  onClose={() =>
+    setIsAddAddressOpen(
+      false
+    )
+  }
+/>
+  onClose={() =>
+    setIsAddAddressOpen(
+      false
+    )
+  }
 
     </div>
 

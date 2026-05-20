@@ -81,7 +81,31 @@ console.log(data);
                   "selectedAddress",
                   address
                 );
+const existingAddresses =
+  JSON.parse(
+    sessionStorage.getItem(
+      "savedAddresses"
+    )
+  ) || [];
 
+const updatedAddresses = [
+
+  {
+    type: "Home",
+    fullAddress: address,
+  },
+
+  ...existingAddresses.filter(
+    (item) =>
+      item.fullAddress !== address
+  ),
+
+];
+
+sessionStorage.setItem(
+  "savedAddresses",
+  JSON.stringify(updatedAddresses)
+);
               }
 
             } catch (error) {

@@ -13,20 +13,32 @@ export default function AddressModal({
     setIsAddAddressOpen] =
     React.useState(false);
 
-  if (!isOpen) return null;
+  const [savedAddresses,
+    setSavedAddresses] =
+    React.useState([]);
 
-  const savedAddresses =
-    JSON.parse(
-      localStorage.getItem(
-        "savedAddresses"
-      )
-    ) || [];
+  React.useEffect(() => {
+
+    const addresses =
+      JSON.parse(
+        sessionStorage.getItem(
+          "savedAddresses"
+        )
+      ) || [];
+
+    setSavedAddresses(addresses);
+
+  }, [isOpen]);
+
+  if (!isOpen) return null;
 
   return (
 
     <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center px-4">
 
       <div className="w-full max-w-3xl bg-[#111111] rounded-3xl border border-green-900 overflow-hidden">
+
+        {/* HEADER */}
 
         <div className="flex items-center justify-between px-6 py-5 border-b border-green-900">
 
@@ -47,7 +59,11 @@ export default function AddressModal({
 
         </div>
 
+        {/* BODY */}
+
         <div className="p-6">
+
+          {/* ADD ADDRESS */}
 
           <button
             onClick={() =>
@@ -66,9 +82,11 @@ export default function AddressModal({
 
           </button>
 
+          {/* SAVED ADDRESSES */}
+
           <div className="mt-8">
 
-            <h3 className="text-gray-400 font-bold mb-4">
+            <h3 className="text-gray-400 font-bold mb-4 tracking-wide">
 
               SAVED ADDRESSES
 
@@ -90,42 +108,40 @@ export default function AddressModal({
 
               ) : (
 
-                savedAddresses.map(
-                  (
-                    address,
-                    index
-                  ) => (
+  savedAddresses.map(
+  (
+    address,
+    index
+  ) => (
 
-                    <div
-  key={index}
-  onClick={() => {
+    <div
+      key={index}
 
-    onSelectAddress(
-      address.fullAddress
-    );
+      onClick={() => {
 
-    onClose();
+  onSelectAddress(
+    address.fullAddress
+  );
 
-  }}
-  className="border border-green-900 rounded-2xl p-5 cursor-pointer hover:bg-[#181818] transition"
->
+  onClose();
 
-                      <p className="text-white font-bold">
+}}
 
-                        {address.type}
+      className="border border-green-900 rounded-2xl p-5 cursor-pointer hover:bg-[#181818] transition"
+    >
 
-                      </p>
+      <p className="text-white font-bold">
+        {address.type}
+      </p>
 
-                      <p className="text-gray-400 mt-2">
+      <p className="text-gray-400 mt-2">
+        {address.fullAddress}
+      </p>
 
-                        {address.fullAddress}
+    </div>
 
-                      </p>
-
-                    </div>
-
-                  )
-                )
+  )
+)
 
               )}
 

@@ -2,200 +2,219 @@ import React, {
   useEffect,
   useState,
 } from "react";
+
 import logo from "../images/Logo.jpeg";
-import { Link } from "react-router-dom";
+
+import {
+  Link,
+} from "react-router-dom";
+
 import {
   CartContext,
 } from "../context/CartContext";
+
 import LocationModal from "./LocationModal";
+
 import {
   signOut,
+  onAuthStateChanged,
 } from "firebase/auth";
 
 import {
   auth,
 } from "../firebase";
-import {
-  onAuthStateChanged,
-} from "firebase/auth";
+
 
 export default function Navbar() {
-    const [selectedLocation,
-        
-  setSelectedLocation] =
-  
-  useState(
-    localStorage.getItem(
-      "selectedAddress"
-    ) || "Select Location"
-  );
+
+  const [selectedLocation,
+    setSelectedLocation] =
+    useState(
+      sessionStorage.getItem(
+  "selectedAddress"
+      ) || "Select Location"
+    );
+
   const [isLocationModalOpen,
-  setIsLocationModalOpen] =
-  useState(false);
+    setIsLocationModalOpen] =
+    useState(false);
+
   const [user,
-  setUser] =
-  useState(null);
-   const {
-  totalItems,
-  totalPrice,
-  setIsCartOpen,
-  
-} = React.useContext(CartContext);
-useEffect(() => {
+    setUser] =
+    useState(null);
 
-  const unsubscribe =
-    onAuthStateChanged(
-      auth,
-      (currentUser) => {
+  const {
+    totalItems,
+    totalPrice,
+    setIsCartOpen,
 
-        setUser(currentUser);
+  } = React.useContext(CartContext);
 
-      }
-    );
+  useEffect(() => {
 
-  return () => unsubscribe();
+    const unsubscribe =
+      onAuthStateChanged(
+        auth,
+        (currentUser) => {
 
-}, []);
-useEffect(() => {
+          setUser(currentUser);
 
-  const unsubscribe =
-    onAuthStateChanged(
-      auth,
-      (currentUser) => {
+        }
+      );
 
-        setUser(currentUser);
+    return () => unsubscribe();
 
-      }
-    );
+  }, []);
 
-  return () => unsubscribe();
-
-}, []);
+ 
   return (
+
     <nav className="sticky top-0 z-50 bg-black border-b border-green-900">
 
-      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div className="w-full px-14 md:px-28 py-4 flex items-center justify-between">
 
+        {/* LEFT SIDE */}
         <div className="flex items-center gap-3">
 
-          <img
-            src={logo}
-            alt="Cuts"
-            className="w-12 h-12 rounded-full"
-          />
-
-          <h1 className="text-2xl font-black text-green-400 tracking-wide">
-            CUTS
-          </h1>
-<button
-  onClick={() =>
-    setIsLocationModalOpen(true)
-  }
-  className="text-left"
+          {/* LOGO CLICK → HOME */}
+          <a
+  href="/"
+  className="flex items-center gap-3"
 >
 
-  <p className="text-xs text-gray-400">
-    Delivery To
-  </p>
+            <img
+              src={logo}
+              alt="Cuts"
+              className="w-12 h-12 rounded-full"
+            />
 
-  <h2 className="text-sm font-bold text-green-400">
+            <h1 className="text-2xl font-black text-green-400 tracking-wide">
+              CUTS
+            </h1>
 
-    {selectedLocation}
+          </a>
 
-  </h2>
+          {/* LOCATION */}
+          <button
+            onClick={() =>
+              setIsLocationModalOpen(true)
+            }
+            className="text-left"
+          >
 
-</button>
+            <p className="text-xs text-gray-400">
+              Delivery To
+            </p>
+
+            <h2 className="text-sm font-bold text-green-400 truncate max-w-[180px]">
+              {selectedLocation}
+            </h2>
+
+          </button>
+
         </div>
 
+        {/* RIGHT SIDE */}
         <div className="hidden md:flex items-center gap-10 text-white font-medium">
 
-          <Link to="/" className="hover:text-green-400 transition">
-            Home
-          </Link>
+         <Link
+  to="/"
+  onClick={() => window.scrollTo(0, 0)}
+  className="hover:text-green-400 transition"
+>
+  Home
+</Link>
 
-          <Link to="/menu" className="hover:text-green-400 transition">
+          <Link
+            to="/menu"
+            className="hover:text-green-400 transition"
+          >
             Menu
           </Link>
 
           <a
-  href="/#about"
-  className="hover:text-green-400 transition"
->
-  About Us
-</a>
+            href="/#about"
+            className="hover:text-green-400 transition"
+          >
+            About Us
+          </a>
 
-         <a
-  href="/#contact"
-  className="hover:text-green-400 transition"
->
-  Contact
-</a>
-<button
-  onClick={() => setIsCartOpen(true)}
-  className="border border-green-500 text-green-400 px-6 py-3 rounded-2xl font-semibold hover:bg-green-500 hover:text-black transition"
->
+          <a
+            href="/#contact"
+            className="hover:text-green-400 transition"
+          >
+            Contact
+          </a>
 
-  Cart ({totalItems}) • ₹{totalPrice}
+          {/* CART */}
+          <button
+            onClick={() => setIsCartOpen(true)}
+            className="border border-green-500 text-green-400 px-6 py-3 rounded-2xl font-semibold hover:bg-green-500 hover:text-black transition"
+          >
 
-</button>
+            Cart ({totalItems}) • ₹{totalPrice}
 
+          </button>
 
- {user ? (
+          {/* LOGIN / LOGOUT */}
+          {user ? (
 
-  <button
-    onClick={async () => {
+            <button
+              onClick={async () => {
 
-      await signOut(auth);
+                await signOut(auth);
 
-      localStorage.removeItem(
-        "selectedAddress"
-      );
+                localStorage.removeItem(
+                  "selectedAddress"
+                );
 
-      localStorage.removeItem(
-        "userCoordinates"
-      );
+                localStorage.removeItem(
+                  "userCoordinates"
+                );
 
-      window.location.href = "/";
+                window.location.href = "/";
 
-    }}
-    className="border border-red-500 px-5 py-2 rounded-xl text-red-400"
-  >
+              }}
+              className="border border-red-500 px-5 py-2 rounded-xl text-red-400"
+            >
 
-    Logout
+              Logout
 
-  </button>
+            </button>
 
-) : (
+          ) : (
 
-  <Link to="/signup">
+            <Link to="/signup">
 
-    <button className="border border-green-500 px-5 py-2 rounded-xl text-green-400">
+              <button className="border border-green-500 px-5 py-2 rounded-xl text-green-400">
 
-      Login
+                Login
 
-    </button>
+              </button>
 
-  </Link>
+            </Link>
 
-)}
-
-
+          )}
 
         </div>
-        
 
       </div>
-<LocationModal
-  isOpen={
-    isLocationModalOpen
-  }
-  onClose={() =>
-    setIsLocationModalOpen(false)
-  }
-  onSave={(address) =>
-    setSelectedLocation(address)
-  }
-/>
+
+      {/* LOCATION MODAL */}
+      <LocationModal
+        isOpen={
+          isLocationModalOpen
+        }
+        onClose={() =>
+          setIsLocationModalOpen(false)
+        }
+        onSave={(address) =>
+          setSelectedLocation(address)
+        }
+      />
+
     </nav>
+
   );
+
 }
