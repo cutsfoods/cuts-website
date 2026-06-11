@@ -3,27 +3,55 @@ import React from "react";
 export const CartContext =
   React.createContext();
 
-export function CartProvider({ children }) {
+export function CartProvider({
+  children,
+}) {
 
-  const [cart, setCart] = React.useState([]);
-const [isCartOpen, setIsCartOpen] =
-  React.useState(false);
+ const [cart, setCart] =
+  React.useState(() => {
+
+    const savedCart =
+      localStorage.getItem(
+        "cart"
+      );
+
+    return savedCart
+      ? JSON.parse(savedCart)
+      : [];
+
+  });
+
+  const [
+    isCartOpen,
+    setIsCartOpen,
+  ] = React.useState(false);
+
+  // ADD TO CART
+
   const addToCart = (item) => {
 
-    const existing = cart.find(
-      (c) => c.id === item.id
-    );
+    const existingItem =
+      cart.find(
+        (cartItem) =>
+          cartItem.id === item.id
+      );
 
-    if (existing) {
+    if (existingItem) {
 
       setCart(
-        cart.map((c) =>
-          c.id === item.id
+        cart.map((cartItem) =>
+
+          cartItem.id === item.id
+
             ? {
-                ...c,
-                quantity: c.quantity + 1,
+                ...cartItem,
+
+                quantity:
+                  cartItem.quantity + 1,
               }
-            : c
+
+            : cartItem
+
         )
       );
 
@@ -31,6 +59,7 @@ const [isCartOpen, setIsCartOpen] =
 
       setCart([
         ...cart,
+
         {
           ...item,
           quantity: 1,
@@ -41,30 +70,47 @@ const [isCartOpen, setIsCartOpen] =
 
   };
 
-  const removeFromCart = (id) => {
+  // REMOVE FROM CART
 
-    const existing = cart.find(
-      (c) => c.id === id
-    );
+  const removeFromCart = (
+    id
+  ) => {
 
-    if (!existing) return;
+    const existingItem =
+      cart.find(
+        (item) =>
+          item.id === id
+      );
 
-    if (existing.quantity === 1) {
+    if (!existingItem) return;
+
+    if (
+      existingItem.quantity === 1
+    ) {
 
       setCart(
-        cart.filter((c) => c.id !== id)
+        cart.filter(
+          (item) =>
+            item.id !== id
+        )
       );
 
     } else {
 
       setCart(
-        cart.map((c) =>
-          c.id === id
+        cart.map((item) =>
+
+          item.id === id
+
             ? {
-                ...c,
-                quantity: c.quantity - 1,
+                ...item,
+
+                quantity:
+                  item.quantity - 1,
               }
-            : c
+
+            : item
+
         )
       );
 
@@ -72,31 +118,61 @@ const [isCartOpen, setIsCartOpen] =
 
   };
 
-  const totalItems = cart.reduce(
-    (sum, item) =>
-      sum + item.quantity,
-    0
+  // TOTAL ITEMS
+
+  const totalItems =
+    cart.reduce(
+
+      (total, item) =>
+
+        total +
+        item.quantity,
+
+      0
+
+    );
+
+  // TOTAL PRICE
+
+  const totalPrice =
+    cart.reduce(
+
+      (total, item) =>
+
+        total +
+
+        item.price *
+          item.quantity,
+
+      0
+
+    );
+React.useEffect(() => {
+
+  localStorage.setItem(
+    "cart",
+    JSON.stringify(cart)
   );
 
-  const totalPrice = cart.reduce(
-    (sum, item) =>
-      sum +
-      item.price * item.quantity,
-    0
-  );
-
+}, [cart]);
   return (
 
     <CartContext.Provider
-     value={{
-  cart,
-  addToCart,
-  removeFromCart,
-  totalItems,
-  totalPrice,
-  isCartOpen,
-  setIsCartOpen,
-}}
+      value={{
+
+        cart,
+        setCart,
+
+        addToCart,
+        removeFromCart,
+
+        totalItems,
+        totalPrice,
+
+        isCartOpen,
+        setIsCartOpen,
+
+      }}
     >
 
       {children}
@@ -104,4 +180,5 @@ const [isCartOpen, setIsCartOpen] =
     </CartContext.Provider>
 
   );
+
 }

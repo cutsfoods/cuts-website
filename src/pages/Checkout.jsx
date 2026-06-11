@@ -1,43 +1,56 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+
+import { useNavigate }
+  from "react-router-dom";
 
 import {
   CartContext,
 } from "../context/CartContext";
 
-import { db } from "../firebase";
+import { db }
+  from "../firebase";
 
 import {
   collection,
   addDoc,
   serverTimestamp,
+  doc,
+  getDoc,
+  updateDoc,
 } from "firebase/firestore";
 
 import AddressModal
   from "../components/AddressModal";
-  import AddAddressModal
+
+import AddAddressModal
   from "../components/AddAddressModal";
 
 export default function Checkout() {
 
-  const navigate = useNavigate();
+  const navigate =
+    useNavigate();
 
   const {
     cart,
+    setCart,
     totalPrice,
-  } = React.useContext(CartContext);
+  } = React.useContext(
+    CartContext
+  );
 
-  const freeDeliveryThreshold = 499;
+  const freeDeliveryThreshold =
+    499;
+
   const deliveryFee =
-  totalPrice >=
-  freeDeliveryThreshold
-    ? 0
-    : 9;
+    totalPrice >=
+    freeDeliveryThreshold
+      ? 0
+      : 9;
 
-const originalDeliveryFee = 30;
+  const originalDeliveryFee =
+    30;
 
-const handlingFee = 0;
-
+  const handlingFee = 0;
 
   const [customerDetails] =
     React.useState({
@@ -51,148 +64,142 @@ const handlingFee = 0;
 
     });
 
-  const [deliveryAddress,
-    setDeliveryAddress] =
-    React.useState("");
-const [savedAddresses,
-  setSavedAddresses] =
-  React.useState([]);
+ const [
+  deliveryAddress,
+  setDeliveryAddress
+] = React.useState(
 
-  const [isAddressModalOpen,
+  localStorage.getItem(
+    "selectedAddress"
+  ) || ""
+
+);
+const [
+  selectedAddressType,
+  setSelectedAddressType
+] = React.useState("");
+  const [isAddressOpen,
     setIsAddressModalOpen] =
     React.useState(false);
-const [isAddAddressOpen,
-  setIsAddAddressOpen] =
-  React.useState(false);
-    React.useEffect(() => {
 
-  const addresses =
-    JSON.parse(
-      localStorage.getItem(
-        "savedAddresses"
-      )
-    ) || [];
+  const [isAddAddressOpen,
+    setIsAddAddressOpen] =
+    React.useState(false);
 
-  setSavedAddresses(addresses);
+  const placeOrder =
+    async () => {
 
-}, []);
-  const placeOrder = async () => {
+      if (!deliveryAddress) {
 
-    if (!deliveryAddress) {
-
-      setIsAddressModalOpen(
-        true
-      );
-
-      return;
-
-    }
-React.useEffect(() => {
-
-  const handleSavedAddress =
-  () => {
-
-    setIsAddressModalOpen(
-      false
-    );
-
-    setIsAddressModalOpen(
-  false
-);
-
-setTimeout(() => {
-
-  setIsAddAddressOpen(
-    true
-  );
-
-}, 100);
-
-  };
-
-  window.addEventListener(
-    "openSavedAddress",
-    handleSavedAddress
-  );
-
-  return () => {
-
-    window.removeEventListener(
-      "openSavedAddress",
-      handleSavedAddress
-    );
-
-  };
-
-}, []);
-    try {
-
-      const orderId =
-        "CUTS" +
-        Math.floor(
-          100000 +
-          Math.random() * 900000
+        setIsAddressModalOpen(
+          true
         );
 
-      const docRef =
-  await addDoc(
-    collection(
-      db,
-      "orders"
-    ),
-    
-        {
+        return;
 
-          customerDetails: {
+      }
 
-            ...customerDetails,
+      try {
 
-            address:
-              deliveryAddress,
-
-            coordinates:
-              JSON.parse(
-                localStorage.getItem(
-                  "userCoordinates"
-                )
-              ),
-
-          },
-
-          cart,
-
-          totalPrice,
-
-          createdAt:
-            serverTimestamp(),
-
-          status:
-            "New Order",
-
-          orderId,
-
-        }
-      );
-localStorage.setItem(
-  "currentOrderId",
-  docRef.id
+       const counterRef = doc(
+  db,
+  "settings",
+  "orderCounter"
 );
-      navigate(
-        "/success",
-        {
-          state: {
-            orderId
-          },
-        }
-      );
 
-    } catch (error) {
+const counterSnap =
+  await getDoc(
+    counterRef
+  );
 
-      console.log(error);
+const currentNumber =
+  counterSnap.data()
+    ?.lastOrderNumber || 0;
 
-    }
+const nextNumber =
+  currentNumber + 1;
+alert("Counter code running");
 
-  };
+await updateDoc(
+  counterRef,
+  {
+    lastOrderNumber:
+      nextNumber,
+  }
+);
+
+const orderId =
+  `CUTS${String(
+    nextNumber
+  ).padStart(3, "0")}`;
+
+        const docRef =
+          await addDoc(
+
+            collection(
+              db,
+              "orders"
+            ),
+
+            {
+
+              customerDetails: {
+
+                ...customerDetails,
+
+                address:
+                  deliveryAddress,
+
+                coordinates:
+                  JSON.parse(
+                    localStorage.getItem(
+                      "userCoordinates"
+                    )
+                  ),
+
+              },
+
+              cart,
+
+              totalPrice,
+
+              createdAt:
+                serverTimestamp(),
+
+              status:
+                "New Order",
+
+              orderId,
+
+            }
+
+          );
+
+        localStorage.setItem(
+          "currentOrderId",
+          docRef.id
+        );
+setCart([]);
+
+localStorage.removeItem(
+  "pendingOrder"
+);
+        navigate(
+          "/success",
+          {
+            state: {
+              orderId,
+            },
+          }
+        );
+
+      } catch (error) {
+
+        console.log(error);
+
+      }
+
+    };
 
   return (
 
@@ -207,7 +214,107 @@ localStorage.setItem(
         </h1>
 
         <div className="mt-10 bg-[#0d0d0d] border border-green-900 rounded-[40px] p-10">
+{/* SAVED ADDRESSES */}
 
+<div className="bg-[#111111] border border-green-900 rounded-3xl p-6 mb-6">
+
+  <h3 className="text-xl font-bold text-green-400 mb-4">
+
+    Saved Addresses
+
+  </h3>
+
+  {(JSON.parse(
+    localStorage.getItem(
+      "savedAddresses"
+    )
+  ) || []).map((address, index) => (
+
+    <button
+
+      key={index}
+
+    onClick={() => {
+
+  setDeliveryAddress(
+    address.fullAddress
+  );
+
+  setSelectedAddressType(
+    address.type
+  );
+
+  localStorage.setItem(
+    "cutsUserName",
+    address.receiverName
+  );
+
+  localStorage.setItem(
+    "cutsUserPhone",
+    address.phoneNumber
+  );
+localStorage.setItem(
+  "selectedAddressData",
+  JSON.stringify(address)
+);
+}}
+
+      className="w-full text-left border border-green-800 rounded-xl p-4 mb-3 hover:bg-[#1a1a1a]"
+
+    >
+
+      <p className="font-bold text-green-400">
+
+        {address.type}
+
+      </p>
+
+      <p className="text-sm">
+
+        {address.receiverName}
+
+      </p>
+
+      <p className="text-sm">
+
+        {address.phoneNumber}
+
+      </p>
+<p className="text-gray-400 text-sm mt-2">
+
+  {address.fullAddress}
+
+</p>
+    </button>
+
+  ))}
+
+</div>
+<div className="bg-[#111111] border border-green-900 rounded-3xl p-6 mb-6">
+
+  <h3 className="text-xl font-bold text-green-400 mb-4">
+
+    Current Selected Location
+
+  </h3>
+
+  <button
+
+    onClick={() =>
+      setIsAddressModalOpen(
+        true
+      )
+    }
+
+    className="w-full text-left border border-green-800 rounded-xl p-4 hover:bg-[#1a1a1a]"
+
+  >
+
+    📍 {deliveryAddress}
+
+  </button>
+
+</div>
           {/* ADDRESS CARD */}
 
           <div className="bg-[#111111] border border-green-900 rounded-3xl p-5 mb-10">
@@ -222,11 +329,11 @@ localStorage.setItem(
 
                 </p>
 
-                <p className="text-white text-lg font-semibold mt-2">
+               <p className="text-white text-lg font-semibold mt-2">
 
-                  Home
+  {selectedAddressType || "Select Address"}
 
-                </p>
+</p>
 
                 <p className="text-gray-300 text-sm mt-2 leading-6">
 
@@ -234,7 +341,21 @@ localStorage.setItem(
                     "No address selected"}
 
                 </p>
+ <button
 
+  onClick={() =>
+    setIsAddressModalOpen(
+      true
+    )
+  }
+
+  className="mt-4 border border-green-500 text-green-400 px-5 py-3 rounded-xl"
+
+>
+
+  + Add New Address
+
+</button>
               </div>
 
               <button
@@ -281,29 +402,6 @@ localStorage.setItem(
 
                     </h3>
 
-                    {item.selectedFruits && (
-
-                      <div className="mt-2 space-y-1">
-
-                        {item.selectedFruits.map(
-                          (fruit) => (
-
-                            <p
-                              key={fruit.name}
-                              className="text-sm text-gray-400"
-                            >
-
-                              {fruit.name} × {fruit.qty}
-
-                            </p>
-
-                          )
-                        )}
-
-                      </div>
-
-                    )}
-
                   </div>
 
                   <p className="text-green-400 font-bold">
@@ -321,260 +419,288 @@ localStorage.setItem(
             ))}
 
           </div>
-<div className="mt-10 bg-[#111111] border border-green-900 rounded-3xl p-6">
 
-  <h3 className="text-2xl font-bold text-white">
+          {/* BILL SUMMARY */}
 
-    Bill Summary
+          <div className="mt-10 bg-[#111111] border border-green-900 rounded-3xl p-6">
 
-  </h3>
+            <h3 className="text-2xl font-bold text-white">
 
-  <div className="mt-6 space-y-5">
+              Bill Summary
 
-    <div className="flex justify-between text-gray-300">
+            </h3>
 
-      <p>Item Total</p>
+            <div className="mt-6 space-y-5">
 
-      <p>
+              <div className="flex justify-between text-gray-300">
 
-        <span className="line-through text-gray-500 mr-2">
+                <p>Item Total</p>
 
-          ₹{totalPrice + 40}
+                <p>
 
-        </span>
+                  <span className="line-through text-gray-500 mr-2">
 
-        ₹{totalPrice}
+                    ₹{totalPrice + 40}
 
-      </p>
+                  </span>
 
-    </div>
+                  ₹{totalPrice}
 
-    <div className="flex justify-between text-gray-300">
+                </p>
 
-      <p>Delivery Fee</p>
+              </div>
 
-      <p>
+              <div className="flex justify-between text-gray-300">
 
-        <span className="line-through text-gray-500 mr-2">
+                <p>Delivery Fee</p>
 
-          ₹{originalDeliveryFee}
+                <p>
 
-        </span>
+                  <span className="line-through text-gray-500 mr-2">
 
-        ₹{deliveryFee}
+                    ₹{originalDeliveryFee}
 
-      </p>
+                  </span>
 
-    </div>
+                  ₹{deliveryFee}
 
-    <p className="text-green-400 text-sm">
+                </p>
 
-      Free delivery above ₹499
-      (Unlock by adding more items)
+              </div>
 
-    </p>
+              <p className="text-green-400 text-sm">
 
-    <div className="flex justify-between text-gray-300">
+                Free delivery above ₹499
 
-      <p>Handling Fee</p>
+              </p>
 
-      <p>
+              <div className="flex justify-between text-gray-300">
 
-        <span className="line-through text-gray-500 mr-2">
+                <p>Handling Fee</p>
 
-          ₹10
+                <p>
 
-        </span>
+                  {handlingFee === 0
+                    ? "FREE"
+                    : `₹${handlingFee}`}
 
-       {handlingFee === 0
-  ? "FREE"
-  : `₹${handlingFee}`
-}
+                </p>
 
-      </p>
+              </div>
 
-    </div>
+              <div className="border-t border-green-900 pt-5 flex justify-between items-center">
 
-    <div className="border-t border-green-900 pt-5 flex justify-between items-center">
+                <p className="text-2xl font-bold">
 
-      <p className="text-2xl font-bold">
+                  To Pay
 
-        To Pay
+                </p>
 
-      </p>
+                <p className="text-3xl font-black text-green-400">
 
-      <p className="text-3xl font-black text-green-400">
+                  ₹{
+                    totalPrice +
+                    deliveryFee +
+                    handlingFee
+                  }
 
-        ₹{
-  totalPrice +
-  deliveryFee +
-  handlingFee
-}
+                </p>
 
-      </p>
+              </div>
 
-    </div>
-
-  </div>
-
-</div>
-          {/* TOTAL */}
-
-          <div className="flex items-center justify-between mt-10">
-
-            <p className="text-2xl font-bold">
-
-              Total
-
-            </p>
-
-           <p className="text-4xl font-black text-green-400">
-
-  ₹{
-    totalPrice +
-    deliveryFee +
-    handlingFee
-  }
-
-</p>
+            </div>
 
           </div>
 
           {/* PAY BUTTON */}
 
           <button
-            onClick={() => {
+            onClick={async () => {
 
-  if (!deliveryAddress) {
-
-    setIsAddressModalOpen(
-      true
-    );
-
-    return;
-
-  }
-const finalTotal =
-  totalPrice +
-  deliveryFee +
-  handlingFee;
-
-const orderId =
-  "CUTS" +
-  Math.floor(
-    100000 +
-    Math.random() * 900000
+             const selectedAddressData =
+  localStorage.getItem(
+    "selectedAddressData"
   );
 
-localStorage.setItem(
+if (!selectedAddressData) {
 
-  "pendingOrder",
+  setIsAddressModalOpen(
+    true
+  );
 
-  JSON.stringify({
+  return;
 
-    customerDetails: {
+}
 
-      ...customerDetails,
+              const finalTotal =
+                totalPrice +
+                deliveryFee +
+                handlingFee;
 
-      address:
-        deliveryAddress,
-
-      coordinates:
-        JSON.parse(
-          localStorage.getItem(
-            "userCoordinates"
-          )
-        ),
-
-    },
-
-    cart,
-
-    totalPrice:
-      finalTotal,
-
-    status:
-      "Preparing",
-
-    orderId,
-
-    createdAt:
-      new Date()
-        .toISOString(),
-
-  })
-
+              const counterRef = doc(
+  db,
+  "settings",
+  "orderCounter"
 );
-  navigate("/payment");
 
-}}
+const counterSnap =
+  await getDoc(counterRef);
+
+const currentNumber =
+  counterSnap.data()
+    ?.lastOrderNumber || 0;
+
+const nextNumber =
+  currentNumber + 1;
+
+await updateDoc(
+  counterRef,
+  {
+    lastOrderNumber:
+      nextNumber,
+  }
+);
+
+const orderId =
+  `CUTS${String(
+    nextNumber
+  ).padStart(3, "0")}`;
+
+              localStorage.setItem(
+
+                "pendingOrder",
+
+                JSON.stringify({
+
+           customerDetails: {
+
+  name:
+    localStorage.getItem(
+      "cutsUserName"
+    ) || "Customer",
+
+  phone:
+    localStorage.getItem(
+      "cutsUserPhone"
+    ) || "",
+
+  address:
+    deliveryAddress,
+
+  notes: "",
+
+  coordinates:
+    JSON.parse(
+      localStorage.getItem(
+        "userCoordinates"
+      )
+    ),
+
+},
+
+                  cart,
+
+                  totalPrice:
+                    finalTotal,
+
+                  status:
+                    "Preparing",
+
+                  orderId,
+
+                  createdAt:
+                    new Date()
+                      .toISOString(),
+
+                })
+
+              );
+const finalAmount =
+
+  Number(totalPrice) +
+
+  Number(deliveryFee) +
+
+  Number(handlingFee);
+
+sessionStorage.setItem(
+  "finalTotal",
+  finalAmount
+);
+  console.log("Before navigate");
+
+navigate("/payment");
+
+console.log("After navigate");
+
+            }}
             className="w-full mt-10 bg-green-500 hover:bg-green-600 text-black py-5 rounded-3xl text-2xl font-black transition"
           >
 
-           Click To Pay ₹{
-  totalPrice +
-  deliveryFee +
-  handlingFee
-}
+            Click To Pay ₹{
+              totalPrice +
+              deliveryFee +
+              handlingFee
+            }
 
           </button>
 
         </div>
 
       </div>
-const [isAddAddressOpen,
-  setIsAddAddressOpen] =
-  React.useState(false);
+
       <AddressModal
         isOpen={
-          isAddressModalOpen
+          isAddressOpen
         }
+
         onClose={() =>
           setIsAddressModalOpen(
             false
           )
         }
-      onSelectAddress={(address) => {
 
-  setDeliveryAddress(
-    address
-  );
+        onSelectAddress={(address) => {
 
-  setIsAddressModalOpen(
-    false
-  );
+          setDeliveryAddress(
+            address
+          );
 
-  setTimeout(() => {
+          sessionStorage.setItem(
+            "selectedAddress",
+            address
+          );
 
-    setIsAddAddressOpen(
-      true
-    );
+          setIsAddressModalOpen(
+            false
+          );
 
-  }, 200);
+          setTimeout(() => {
 
-}}
+            setIsAddAddressOpen(
+              true
+            );
 
+          }, 200);
+
+        }}
       />
-<AddAddressModal
-  isOpen={
-    isAddAddressOpen
-  }
 
-  selectedAddress={
-    deliveryAddress
-  }
+      <AddAddressModal
+        isOpen={
+          isAddAddressOpen
+        }
 
-  onClose={() =>
-    setIsAddAddressOpen(
-      false
-    )
-  }
-/>
-  onClose={() =>
-    setIsAddAddressOpen(
-      false
-    )
-  }
+        selectedAddress={
+          deliveryAddress
+        }
+
+        onClose={() =>
+          setIsAddAddressOpen(
+            false
+          )
+        }
+      />
 
     </div>
 

@@ -3,17 +3,20 @@ import React, {
   useState,
 } from "react";
 
-import logo from "../images/Logo.jpeg";
+import logo
+  from "../images/Logo.jpeg";
 
 import {
   Link,
+  useNavigate,
 } from "react-router-dom";
 
 import {
   CartContext,
 } from "../context/CartContext";
 
-import LocationModal from "./LocationModal";
+import LocationModal
+  from "./LocationModal";
 
 import {
   signOut,
@@ -24,15 +27,19 @@ import {
   auth,
 } from "../firebase";
 
-
 export default function Navbar() {
+
+  const navigate =
+    useNavigate();
 
   const [selectedLocation,
     setSelectedLocation] =
     useState(
+
       sessionStorage.getItem(
-  "selectedAddress"
+        "selectedAddress"
       ) || "Select Location"
+
     );
 
   const [isLocationModalOpen,
@@ -43,41 +50,87 @@ export default function Navbar() {
     setUser] =
     useState(null);
 
+    const [showAccountMenu,
+  setShowAccountMenu] =
+  useState(false);
+
   const {
     totalItems,
     totalPrice,
     setIsCartOpen,
+  } = React.useContext(
+    CartContext
+  );
 
-  } = React.useContext(CartContext);
+  // AUTH STATE
 
   useEffect(() => {
 
     const unsubscribe =
+
       onAuthStateChanged(
         auth,
         (currentUser) => {
 
-          setUser(currentUser);
+          setUser(
+            currentUser
+          );
+
+          if (currentUser) {
+
+            localStorage.setItem(
+              "cutsUserLoggedIn",
+              "true"
+            );
+
+          } else {
+
+            localStorage.removeItem(
+              "cutsUserLoggedIn"
+            );
+
+          }
 
         }
       );
 
-    return () => unsubscribe();
+    return () =>
+      unsubscribe();
 
   }, []);
 
- 
+  // OPEN CART
+
+  const handleCartOpen =
+    () => {
+
+      if (!user) {
+
+        navigate(
+          "/signup"
+        );
+
+        return;
+
+      }
+
+      setIsCartOpen(
+        true
+      );
+
+    };
+
   return (
 
     <nav className="sticky top-0 z-50 bg-black border-b border-green-900">
 
       <div className="w-full px-14 md:px-28 py-4 flex items-center justify-between">
 
-        {/* LEFT SIDE */}
+        {/* LEFT */}
+
         <div className="flex items-center gap-3">
 
-          {/* LOGO CLICK → HOME */}
-          <a
+         <a
   href="/"
   className="flex items-center gap-3"
 >
@@ -89,67 +142,92 @@ export default function Navbar() {
             />
 
             <h1 className="text-2xl font-black text-green-400 tracking-wide">
+
               CUTS
+
             </h1>
 
           </a>
 
           {/* LOCATION */}
+
           <button
             onClick={() =>
-              setIsLocationModalOpen(true)
+              setIsLocationModalOpen(
+                true
+              )
             }
             className="text-left"
           >
 
             <p className="text-xs text-gray-400">
+
               Delivery To
+
             </p>
 
             <h2 className="text-sm font-bold text-green-400 truncate max-w-[180px]">
+
               {selectedLocation}
+
             </h2>
 
           </button>
 
         </div>
 
-        {/* RIGHT SIDE */}
+        {/* RIGHT */}
+
         <div className="hidden md:flex items-center gap-10 text-white font-medium">
 
-         <Link
-  to="/"
-  onClick={() => window.scrollTo(0, 0)}
-  className="hover:text-green-400 transition"
+         <a
+  href="/"
+  className="hover:text-green-100 transition"
 >
   Home
-</Link>
+</a>
 
           <Link
-            to="/menu"
+            to={
+              user
+                ? "/menu"
+                : "/signup"
+            }
             className="hover:text-green-400 transition"
           >
+
             Menu
+
           </Link>
 
           <a
             href="/#about"
             className="hover:text-green-400 transition"
           >
+
             About Us
+
           </a>
 
           <a
             href="/#contact"
             className="hover:text-green-400 transition"
           >
+
             Contact
+
           </a>
 
           {/* CART */}
+
           <button
-            onClick={() => setIsCartOpen(true)}
+
+            onClick={
+              handleCartOpen
+            }
+
             className="border border-green-500 text-green-400 px-6 py-3 rounded-2xl font-semibold hover:bg-green-500 hover:text-black transition"
+
           >
 
             Cart ({totalItems}) • ₹{totalPrice}
@@ -157,36 +235,125 @@ export default function Navbar() {
           </button>
 
           {/* LOGIN / LOGOUT */}
-          {user ? (
 
-            <button
-              onClick={async () => {
+         {user ? (
 
-                await signOut(auth);
+  <div className="relative">
 
-                localStorage.removeItem(
-                  "selectedAddress"
-                );
+    <button
 
-                localStorage.removeItem(
-                  "userCoordinates"
-                );
+      onClick={() =>
+        setShowAccountMenu(
+          !showAccountMenu
+        )
+      }
 
-                window.location.href = "/";
+      className="border border-green-500 px-5 py-2 rounded-xl text-green-400 hover:bg-green-500 hover:text-black transition"
 
-              }}
-              className="border border-red-500 px-5 py-2 rounded-xl text-red-400"
+    >
+
+      👤 Account
+
+    </button>
+
+    {showAccountMenu && (
+
+      <div className="absolute right-0 mt-3 w-56 bg-[#111111] border border-green-900 rounded-2xl overflow-hidden shadow-xl">
+
+        <button
+
+          onClick={() =>
+            navigate("/profile")
+          }
+
+          className="w-full text-left px-5 py-4 hover:bg-[#1a1a1a] text-white"
+
+        >
+
+          👤 Profile
+
+        </button>
+
+        <button
+
+          onClick={() =>
+            navigate("/orders")
+          }
+
+          className="w-full text-left px-5 py-4 hover:bg-[#1a1a1a] text-white"
+
+        >
+
+          📦 Order History
+
+        </button>
+<button
+
+  onClick={() =>
+    navigate(
+      "/saved-addresses"
+    )
+  }
+
+  className="w-full text-left px-5 py-4 hover:bg-[#1a1a1a] text-white"
+
+>
+
+  📍 Saved Addresses
+
+</button> 
+        <button
+
+         onClick={async () => {
+
+  await signOut(auth);
+
+  localStorage.removeItem(
+    "selectedAddress"
+  );
+
+  localStorage.removeItem(
+    "selectedAddressData"
+  );
+
+  localStorage.removeItem(
+    "cutsUserName"
+  );
+
+  localStorage.removeItem(
+    "cutsUserPhone"
+  );
+
+  localStorage.removeItem(
+    "userCoordinates"
+  );
+
+  sessionStorage.clear();
+
+  window.location.href = "/";
+
+}}
+          className="w-full text-left px-5 py-4 hover:bg-[#1a1a1a] text-red-400"
+
+        >
+
+          🚪 Logout
+
+        </button>
+
+      </div>
+
+    )}
+
+  </div>
+
+) : (
+
+            <Link
+              to="/signup"
             >
 
-              Logout
-
-            </button>
-
-          ) : (
-
-            <Link to="/signup">
-
-              <button className="border border-green-500 px-5 py-2 rounded-xl text-green-400">
+              <button className="border border-green-500 px-5 py-2 rounded-xl text-green-400 hover:bg-green-500 hover:text-black transition">
 
                 Login
 
@@ -201,16 +368,25 @@ export default function Navbar() {
       </div>
 
       {/* LOCATION MODAL */}
+
       <LocationModal
+
         isOpen={
           isLocationModalOpen
         }
+
         onClose={() =>
-          setIsLocationModalOpen(false)
+          setIsLocationModalOpen(
+            false
+          )
         }
+
         onSave={(address) =>
-          setSelectedLocation(address)
+          setSelectedLocation(
+            address
+          )
         }
+
       />
 
     </nav>

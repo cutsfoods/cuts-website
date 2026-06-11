@@ -16,10 +16,57 @@ export default function Admin() {
 
  const [orders, setOrders] =
   React.useState([]);
+const ordersToday =
+  orders.filter((order) => {
 
+    if (!order.createdAt)
+      return false;
+
+    const orderDate =
+      order.createdAt
+        ?.toDate?.();
+
+    return (
+      orderDate?.toDateString() ===
+      new Date().toDateString()
+    );
+
+  });
+
+const todayRevenue =
+  ordersToday.reduce(
+    (total, order) =>
+      total +
+      (order.totalPrice || 0),
+    0
+  );
+
+const preparingOrders =
+  orders.filter(
+    (order) =>
+      order.status ===
+      "Preparing"
+  ).length;
+
+const deliveredOrders =
+  orders.filter(
+    (order) =>
+      order.status ===
+      "Delivered"
+  ).length;
 const [products, setProducts] =
   React.useState([]);
+const [riders, setRiders] =
+  React.useState([]);
+const [
+  newRiderName,
+  setNewRiderName,
+] = React.useState("");
 
+const [
+  newRiderPhone,
+  setNewRiderPhone,
+] = React.useState("");
 const [
   notificationsEnabled,
   setNotificationsEnabled,
@@ -123,12 +170,64 @@ const updateOrderStatus =
 
   };
 
+  const assignRider =
+  async (
+    orderId,
+    riderName
+  ) => {
+
+    const rider =
+      riders.find(
+        (r) =>
+          r.name === riderName
+      );
+
+    if (!rider) return;
+
+    try {
+
+      await updateDoc(
+
+        doc(
+          db,
+          "orders",
+          orderId
+        ),
+
+        {
+
+          riderName:
+            rider.name,
+
+          riderPhone:
+            rider.phone,
+
+        }
+
+      );
+
+    } catch (error) {
+
+      console.log(error);
+
+    }
+
+  };
 React.useEffect(() => {
 
 const ordersQuery =
-  collection(
-    db,
-    "orders"
+  query(
+
+    collection(
+      db,
+      "orders"
+    ),
+
+    orderBy(
+      "createdAt",
+      "desc"
+    )
+
   );
 
   const unsubscribeOrders =
@@ -220,14 +319,43 @@ const ordersQuery =
       }
 
     );
+const unsubscribeRiders =
+  onSnapshot(
 
-  return () => {
+    collection(
+      db,
+      "riders"
+    ),
 
-    unsubscribeOrders();
+    (snapshot) => {
 
-    unsubscribeProducts();
+      const fetchedRiders =
+        snapshot.docs.map(
+          (doc) => ({
 
-  };
+            id: doc.id,
+
+            ...doc.data(),
+
+          })
+        );
+
+      setRiders(
+        fetchedRiders
+      );
+
+    }
+
+  );
+return () => {
+
+  unsubscribeOrders();
+
+  unsubscribeProducts();
+
+  unsubscribeRiders();
+
+};
 
 }, [notificationsEnabled]);
 const updateRiderLocation =
@@ -338,6 +466,187 @@ const updateRiderLocation =
   </button>
 
 )}
+<div className="grid md:grid-cols-4 gap-5 mb-8">
+
+  <div className="bg-[#111111] border border-green-900 rounded-3xl p-6">
+
+    <p className="text-gray-400">
+
+      Orders Today
+
+    </p>
+
+    <h2 className="text-4xl font-black text-green-400">
+
+      {ordersToday.length}
+
+    </h2>
+
+  </div>
+
+  <div className="bg-[#111111] border border-green-900 rounded-3xl p-6">
+
+    <p className="text-gray-400">
+
+      Revenue Today
+
+    </p>
+
+    <h2 className="text-4xl font-black text-green-400">
+
+      ₹{todayRevenue}
+
+    </h2>
+
+  </div>
+
+  <div className="bg-[#111111] border border-green-900 rounded-3xl p-6">
+
+    <p className="text-gray-400">
+
+      Preparing
+
+    </p>
+
+    <h2 className="text-4xl font-black text-green-400">
+
+      {preparingOrders}
+
+    </h2>
+
+  </div>
+
+  <div className="bg-[#111111] border border-green-900 rounded-3xl p-6">
+
+    <p className="text-gray-400">
+
+      Delivered
+
+    </p>
+
+    <h2 className="text-4xl font-black text-green-400">
+
+      {deliveredOrders}
+
+    </h2>
+
+  </div>
+
+</div>
+<div className="bg-[#0d0d0d] border border-green-900 rounded-[35px] p-8 mb-10">
+
+  <h2 className="text-3xl font-black text-green-400 mb-6">
+
+    🚴 Riders Management
+
+  </h2>
+
+  <div className="flex gap-4 flex-wrap">
+
+    <input
+
+      type="text"
+
+      placeholder="Rider Name"
+
+      value={newRiderName}
+
+      onChange={(e) =>
+        setNewRiderName(
+          e.target.value
+        )
+      }
+
+      className="bg-black border border-green-900 rounded-xl px-4 py-3 text-white"
+
+    />
+
+    <input
+
+      type="text"
+
+      placeholder="Phone Number"
+
+      value={newRiderPhone}
+
+      onChange={(e) =>
+        setNewRiderPhone(
+          e.target.value
+        )
+      }
+
+      className="bg-black border border-green-900 rounded-xl px-4 py-3 text-white"
+
+    />
+
+    <button
+
+      onClick={() => {
+
+        if (
+          !newRiderName ||
+          !newRiderPhone
+        )
+          return;
+
+        setRiders([
+          ...riders,
+          {
+            name:
+              newRiderName,
+            phone:
+              newRiderPhone,
+          },
+        ]);
+
+        setNewRiderName("");
+
+        setNewRiderPhone("");
+
+      }}
+
+      className="bg-green-500 hover:bg-green-600 text-black font-bold px-6 py-3 rounded-xl"
+
+    >
+
+      Add Rider
+
+    </button>
+
+  </div>
+
+</div>
+<div className="mt-6 grid md:grid-cols-3 gap-4">
+
+  {riders.map(
+    (rider, index) => (
+
+      <div
+
+        key={index}
+
+        className="bg-black border border-green-900 rounded-2xl p-4"
+
+      >
+
+        <h3 className="text-green-400 font-bold">
+
+          {rider.name}
+
+        </h3>
+
+        <p className="text-gray-400">
+
+          {rider.phone}
+
+        </p>
+
+      </div>
+
+    )
+  )}
+
+</div>
         <div className="mt-14 grid gap-8">
 
           {orders
@@ -364,7 +673,13 @@ const updateRiderLocation =
                   </h2>
 <div className="mt-4 flex items-center gap-4 flex-wrap">
 
-  <span className="bg-green-500 text-black px-5 py-2 rounded-2xl font-bold">
+  <span className="
+bg-[#111111]
+border
+border-green-900
+rounded-2xl
+p-4
+">
 
     {order.status || "Pending"}
     <div className="flex gap-3 mt-6 flex-wrap">
@@ -418,7 +733,13 @@ const updateRiderLocation =
         "Delivered"
       )
     }
-    className="bg-green-500 text-black px-4 py-2 rounded-xl font-bold"
+    className="
+bg-[#111111]
+border
+border-green-900
+rounded-2xl
+p-4
+"
   >
 
     Delivered
@@ -426,84 +747,62 @@ const updateRiderLocation =
   </button>
 <div className="flex gap-3 mt-4 flex-wrap">
 
-  <button
-    onClick={() =>
-      updateRiderLocation(
-        order.id,
-        12.9816,
-        77.6046
-      )
-    }
-    className="bg-green-500 text-black px-4 py-2 rounded-xl font-bold"
-  >
+ <select
 
-    Move Rider 1
+  value={
+    order.riderName || ""
+  }
 
-  </button>
+  onChange={(e) =>
+    assignRider(
+      order.id,
+      e.target.value
+    )
+  }
 
-  <button
-    onClick={() =>
-      updateRiderLocation(
-        order.id,
-        12.9850,
-        77.6100
-      )
-    }
-    className="bg-blue-500 text-white px-4 py-2 rounded-xl font-bold"
-  >
+  className="bg-black border border-green-500 text-white rounded-xl px-4 py-2 font-bold"
 
-    Move Rider 2
+>
 
-  </button>
+  <option value="">
+    Assign Rider
+  </option>
 
-  <button
-    onClick={() =>
-      updateRiderLocation(
-        order.id,
-        12.9890,
-        77.6150
-      )
-    }
-    className="bg-purple-500 text-white px-4 py-2 rounded-xl font-bold"
-  >
+  {riders.map(
+    (rider) => (
 
-    Move Rider 3
+      <option
+        key={rider.name}
+        value={rider.name}
+      >
 
-  </button>
+        {rider.name}
 
+      </option>
+
+    )
+  )}
+
+</select>
+{order.riderName && (
+
+  <div className="text-green-400 text-sm font-bold">
+
+    🚴 {order.riderName}
+
+    <br />
+
+    📞 {order.riderPhone}
+
+  </div>
+
+)}
 </div>
 </div>
 
   </span>
 
-  <select
-    value={order.status || "Pending"}
-    onChange={(e) =>
-      updateOrderStatus(
-        order.id,
-        e.target.value
-      )
-    }
-    className="bg-black border border-green-900 px-4 py-2 rounded-2xl text-white"
-  >
-
-    <option value="Pending">
-      Pending
-    </option>
-
-    <option value="Preparing">
-      Preparing
-    </option>
-
-    <option value="Out for Delivery">
-      Out for Delivery
-    </option>
-
-    <option value="Delivered">
-      Delivered
-    </option>
-
-  </select>
+ 
 
 </div>
                   <div className="mt-5 space-y-3 text-lg text-gray-300">
@@ -530,7 +829,7 @@ const updateRiderLocation =
 
 )}
                     <p>
-                      💳 {order.customerDetails?.payment}
+                      💳 {order.paymentMethod}
                     </p>
 
                     <p>

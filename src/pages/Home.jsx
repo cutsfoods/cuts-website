@@ -8,6 +8,8 @@ import {
   FaPhoneAlt,
   FaMapMarkerAlt,
 } from "react-icons/fa";
+import { Link }
+from "react-router-dom";
 
 export default function Home() {
   return (
@@ -452,7 +454,21 @@ export default function Home() {
   </a>
 
 </div>
+<div className="mt-8 flex justify-center gap-6">
 
+  <Link to="/privacy">
+    Privacy Policy
+  </Link>
+
+  <Link to="/terms">
+    Terms & Conditions
+  </Link>
+
+  <Link to="/refund-policy">
+    Refund Policy
+  </Link>
+
+</div>
       </div>
 
     </div>

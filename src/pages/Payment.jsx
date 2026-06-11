@@ -1,4 +1,4 @@
-import React from "react";
+
 import {
   CartContext,
 } from "../context/CartContext";
@@ -11,168 +11,175 @@ import {
 
 import { db }
   from "../firebase";
+import {
+  useLocation,
+} from "react-router-dom";
+ 
+import React, {
+  useContext
+} from "react";
 
 export default function Payment() {
+  const { setCart } =
+  useContext(
+    CartContext
+  );
     const navigate = useNavigate();
+    const location =
+  useLocation();
 const {
   totalPrice,
 } = React.useContext(
   CartContext
 );
+const finalTotal = Number(
 
-const freeDeliveryThreshold = 499;
+  sessionStorage.getItem(
+    "finalTotal"
+  )
 
-const deliveryFee =
-  totalPrice >=
-  freeDeliveryThreshold
-    ? 0
-    : 9;
+) || 0;
+const handleRazorpayPayment = async () => {
 
-const handlingFee = 0;
+  try {
+console.log(finalTotal);
+    const response = await fetch(
+      "http://127.0.0.1:5000/create-order",
+      {
+        method: "POST",
 
-const finalTotal =
-  totalPrice +
-  deliveryFee +
-  handlingFee;
-  const handleRazorpayPayment =
-  async () => {
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
 
-    try {
+        body: JSON.stringify({
+          amount: finalTotal,
+        }),
+      }
+    );
 
-      const response =
-        await fetch(
-          "http://localhost:5000/create-order",
-          {
+    const order = await response.json();
 
-            method: "POST",
+    console.log(order);
 
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
+    const options = {
 
-            body: JSON.stringify({
+      key:
+        import.meta.env
+          .VITE_RAZORPAY_KEY_ID,
 
-              amount:
-                finalTotal,
+      amount:
+        order.amount,
 
-            }),
+      currency:
+        order.currency,
+
+      name: "CUTS",
+
+      description:
+        "Order Payment",
+
+      order_id:
+        order.id,
+prefill: {
+
+  name:
+    "CUTS Customer",
+
+  contact:
+    "9876543210",
+
+},
+      handler:
+        async function (
+          response
+        ) {
+
+          try {
+
+            const orderData =
+              JSON.parse(
+                localStorage.getItem(
+                  "pendingOrder"
+                )
+              );
+
+            const docRef =
+              await addDoc(
+
+                collection(
+                  db,
+                  "orders"
+                ),
+
+                {
+
+                  ...orderData,
+
+                  paymentMethod:
+                    "Online",
+
+                  paymentId:
+                    response
+                      .razorpay_payment_id,
+
+                  status:
+                    "Preparing",
+
+                  createdAt:
+                    serverTimestamp(),
+
+                }
+
+              );
+
+            localStorage.setItem(
+              "currentOrderId",
+              docRef.id
+            );
+setCart([]);
+
+localStorage.removeItem(
+  "cart"
+);
+
+localStorage.removeItem(
+  "pendingOrder"
+);
+            navigate(
+              "/track-order"
+            );
+
+          } catch (error) {
+
+            console.log(error);
 
           }
-        );
 
-      const order =
-        await response.json();
+        },
 
-      const options = {
+      theme: {
+        color: "#00ff66",
+      },
 
-        key:
-          import.meta.env
-            .VITE_RAZORPAY_KEY_ID,
+    };
 
-        amount:
-          order.amount,
-
-        currency:
-          order.currency,
-
-        name: "CUTS",
-
-        description:
-          "Food Order Payment",
-
-        order_id:
-          order.id,
-
-        handler:
-          async function (
-            response
-          ) {
-
-    try {
-
-  const orderData =
-    JSON.parse(
-      localStorage.getItem(
-        "pendingOrder"
-      )
+    const razor = new window.Razorpay(
+      options
     );
 
-  const docRef =
-    await addDoc(
+    razor.open();
 
-      collection(
-        db,
-        "orders"
-      ),
+  } catch (error) {
 
-      {
+  console.error(error);
 
-        ...orderData,
-
-        paymentId:
-          response
-            .razorpay_payment_id,
-
-        status:
-          "Preparing",
-
-        createdAt:
-          serverTimestamp(),
-
-      }
-
-    );
-
-  localStorage.setItem(
-
-    "currentOrderId",
-
-    docRef.id
-
-  );
-
-  alert(
-`Payment Successful ✅
-
-Order Placed Successfully 🚀
-
-Order ID:
-${orderData.orderId}`
-  );
-
-  navigate(
-    "/track-order"
-  );
-
-} catch (error) {
-
-  console.log(error);
+  alert(error?.message || "Payment Error");
 
 }
 
-          },
-
-        theme: {
-          color: "#00ff66",
-        },
-
-      };
-
-      const razorpay =
-        new window.Razorpay(
-          options
-        );
-
-      razorpay.open();
-
-    } catch (error) {
-
-      console.log(error);
-
-    }
-
-  };
+};
   return (
 
     <div className="bg-black min-h-screen text-white px-6 py-10">
@@ -273,74 +280,92 @@ ${orderData.orderId}`
 
           </h2>
 
-          <button className="w-full mt-6 bg-green-500 hover:bg-green-600 text-black py-5 rounded-3xl text-xl font-black transition">
+          <button
 
-            Confirm COD Order
-
-          </button>
-<button
   onClick={async () => {
 
-  try {
+    try {
 
-    const orderData =
-      JSON.parse(
-        localStorage.getItem(
-          "pendingOrder"
-        )
+      const orderData =
+
+        JSON.parse(
+
+          localStorage.getItem(
+            "pendingOrder"
+          )
+
+        );
+
+      const docRef =
+
+        await addDoc(
+
+          collection(
+            db,
+            "orders"
+          ),
+
+          {
+
+            ...orderData,
+
+            paymentMethod:
+              "COD",
+
+            status:
+              "Preparing",
+
+            createdAt:
+              serverTimestamp(),
+
+          }
+
+        );
+
+      localStorage.setItem(
+
+        "currentOrderId",
+
+        docRef.id
+
+      );
+setCart([]);
+
+localStorage.removeItem(
+  "cart"
+);
+
+localStorage.removeItem(
+  "pendingOrder"
+);
+      alert(
+        "COD Order Placed Successfully 🚀"
       );
 
-    const docRef =
-      await addDoc(
-
-        collection(
-          db,
-          "orders"
-        ),
-
-        {
-
-          ...orderData,
-
-          status:
-            "Preparing",
-
-          createdAt:
-            serverTimestamp(),
-
-        }
-
+      navigate(
+        "/track-order"
       );
 
-    localStorage.setItem(
+    } catch (error) {
 
-      "currentOrderId",
+      console.log(error);
 
-      docRef.id
+      alert(
+        "Failed to place order"
+      );
 
-    );
+    }
 
-    alert(
-      "Order Placed Successfully 🚀"
-    );
+  }}
 
-    navigate(
-      "/track-order"
-    );
-
-  } catch (error) {
-
-    console.log(error);
-
-  }
-
-}}
   className="w-full mt-6 bg-green-500 hover:bg-green-600 text-black py-5 rounded-3xl text-xl font-black transition"
+
 >
 
-  Simulate Payment Success
+  Confirm COD Order
 
 </button>
+
         </div>
 
       </div>

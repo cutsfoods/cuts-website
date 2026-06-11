@@ -4,21 +4,20 @@ import {
   Navigate,
 } from "react-router-dom";
 
-export default function ProtectedRoute({
+export default function AdminRoute({
   children,
 }) {
 
-  const isLoggedIn =
-
+  const isAdminLoggedIn =
     localStorage.getItem(
-      "cutsUserLoggedIn"
+      "cutsAdminLoggedIn"
     ) === "true";
 
-  if (!isLoggedIn) {
+  if (!isAdminLoggedIn) {
 
     return (
       <Navigate
-        to="/signup"
+        to="/admin-login"
       />
     );
 

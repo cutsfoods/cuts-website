@@ -10,31 +10,29 @@ export default function AddAddressModal({
 }) {
 
   const [address,
-  setAddress] =
-  React.useState(
-    selectedAddress || ""
-  );
-React.useEffect(() => {
-
-  if (selectedAddress) {
-
-    setAddress(
-      selectedAddress
+    setAddress] =
+    React.useState(
+      selectedAddress || ""
     );
 
-    setShowAddressForm(
-      true
-    ); 
-
-  }
-
-}, [selectedAddress]);
   const [flatNo,
     setFlatNo] =
     React.useState("");
 
+  const [buildingName,
+    setBuildingName] =
+    React.useState("");
+
   const [landmark,
     setLandmark] =
+    React.useState("");
+
+  const [receiverName,
+    setReceiverName] =
+    React.useState("");
+
+  const [phoneNumber,
+    setPhoneNumber] =
     React.useState("");
 
   const [addressType,
@@ -44,6 +42,22 @@ React.useEffect(() => {
   const [showAddressForm,
     setShowAddressForm] =
     React.useState(false);
+
+  React.useEffect(() => {
+
+    if (selectedAddress) {
+
+      setAddress(
+        selectedAddress
+      );
+
+      setShowAddressForm(
+        true
+      );
+
+    }
+
+  }, [selectedAddress]);
 
   if (!isOpen) return null;
 
@@ -88,55 +102,54 @@ React.useEffect(() => {
             }
           >
 
-          <LocationPicker
+            <LocationPicker
 
-  selectedAddress={
-    selectedAddress
-  }
+              selectedAddress={
+                selectedAddress
+              }
 
-  onLocationSelect={
-    async (location) => {
+              onLocationSelect={
+                async (location) => {
 
-      try {
+                  try {
 
-        const response =
-          await fetch(
+                    const response =
+                      await fetch(
 
 `https://maps.googleapis.com/maps/api/geocode/json?latlng=${location.lat},${location.lng}&key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}`
 
-          );
+                      );
 
-        const data =
-          await response.json();
+                    const data =
+                      await response.json();
 
-        if (
-          data.results &&
-          data.results.length > 0
-        ) {
+                    if (
+                      data.results &&
+                      data.results.length > 0
+                    ) {
 
-          setAddress(
+                      setAddress(
 
-            data.results[0]
-              .formatted_address
+                        data.results[0]
+                          .formatted_address
 
-          );
+                      );
 
-        }
+                    }
 
-      } catch (error) {
+                  } catch (error) {
 
-        console.log(error);
+                    console.log(
+                      error
+                    );
 
-      }
+                  }
 
-    }
-  }
-/>
+                }
+              }
+            />
 
           </div>
-
-          
-         
 
           {/* PROCEED BUTTON */}
 
@@ -162,6 +175,8 @@ React.useEffect(() => {
           {showAddressForm && (
 
             <div className="mt-8 bg-black">
+
+              {/* SELECTED ADDRESS */}
 
               <div className="border border-green-900 rounded-2xl p-5">
 
@@ -200,10 +215,13 @@ React.useEffect(() => {
                     <button
                       key={type}
                       onClick={() =>
-                        setAddressType(type)
+                        setAddressType(
+                          type
+                        )
                       }
                       className={`px-6 py-3 rounded-2xl border transition ${
-                        addressType === type
+                        addressType ===
+                        type
                           ? "bg-green-500 text-black border-green-500"
                           : "border-green-900 text-white bg-[#111111]"
                       }`}
@@ -238,6 +256,12 @@ React.useEffect(() => {
                 <input
                   type="text"
                   placeholder="Building Name *"
+                  value={buildingName}
+                  onChange={(e) =>
+                    setBuildingName(
+                      e.target.value
+                    )
+                  }
                   className="w-full bg-[#111111] border border-green-900 rounded-2xl px-6 py-5 text-white outline-none"
                 />
 
@@ -269,13 +293,25 @@ React.useEffect(() => {
 
                   <input
                     type="text"
-                    placeholder="Receiver Name"
+                    placeholder="Receiver Name *"
+                    value={receiverName}
+                    onChange={(e) =>
+                      setReceiverName(
+                        e.target.value
+                      )
+                    }
                     className="w-full bg-[#111111] border border-green-900 rounded-2xl px-6 py-5 text-white outline-none"
                   />
 
                   <input
                     type="text"
-                    placeholder="Phone Number"
+                    placeholder="Phone Number *"
+                    value={phoneNumber}
+                    onChange={(e) =>
+                      setPhoneNumber(
+                        e.target.value
+                      )
+                    }
                     className="w-full bg-[#111111] border border-green-900 rounded-2xl px-6 py-5 text-white outline-none"
                   />
 
@@ -286,53 +322,75 @@ React.useEffect(() => {
               {/* SAVE BUTTON */}
 
               <button
+
                 onClick={() => {
-if (
-  !flatNo ||
-  !buildingName ||
-  !receiverName ||
-  !phoneNumber
-) {
 
-  alert(
-    "Please fill all required fields"
-  );
+                  if (
+                    !flatNo ||
+                    !buildingName ||
+                    !receiverName ||
+                    !phoneNumber
+                  ) {
 
-  return;
+                    alert(
+                      "Please fill all required fields"
+                    );
 
-}
-if (phoneNumber.length < 10) {
+                    return;
 
-  alert(
-    "Enter valid phone number"
-  );
+                  }
 
-  return;
+                  if (
+                    phoneNumber.length < 10
+                  ) {
 
-}
+                    alert(
+                      "Enter valid phone number"
+                    );
+
+                    return;
+
+                  }
+
                   const savedAddresses =
                     JSON.parse(
-                      sessionStorage.getItem(
-                        "savedAddresses"
-                      )
+
+                      localStorage.getItem(
+  "savedAddresses"
+)
+
                     ) || [];
 
                   const newAddress = {
 
-                    type: addressType,
+                    type:
+                      addressType,
 
                     fullAddress:
                       address,
 
                     flatNo,
 
+                    buildingName,
+
                     landmark,
 
+                    receiverName,
+
+                    phoneNumber,
+
                   };
+localStorage.setItem(
+  "cutsUserName",
+  receiverName
+);
 
-                  sessionStorage.setItem(
-
-                    "savedAddresses",
+localStorage.setItem(
+  "cutsUserPhone",
+  phoneNumber
+);
+                  localStorage.setItem(
+  "savedAddresses",
 
                     JSON.stringify([
                       ...savedAddresses,
@@ -341,14 +399,19 @@ if (phoneNumber.length < 10) {
 
                   );
 
-                  alert(
-                    "Address Saved"
+                  sessionStorage.setItem(
+                    "selectedAddress",
+                    address
                   );
+
+                  window.location.reload();
 
                   onClose();
 
                 }}
+
                 className="w-full mt-10 bg-green-500 hover:bg-green-600 text-black py-5 rounded-3xl text-lg font-semibold transition"
+
               >
 
                 Save Address

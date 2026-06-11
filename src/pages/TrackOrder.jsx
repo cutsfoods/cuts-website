@@ -2,11 +2,13 @@ import React from "react";
 
 import { db } from "../firebase";
 
+
+
 import {
   doc,
   onSnapshot,
+  updateDoc,
 } from "firebase/firestore";
-
 
 
 
@@ -15,13 +17,18 @@ export default function TrackOrder() {
   const [order,
     setOrder] =
     React.useState(null);
+    const currentOrderId =
+  localStorage.getItem(
+    "currentOrderId"
+  );
+const [deliveryNote, setDeliveryNote] =
+  React.useState("");
 
+const [savingNote, setSavingNote] =
+  React.useState(false);
   React.useEffect(() => {
 
-    const currentOrderId =
-      localStorage.getItem(
-        "currentOrderId"
-      );
+    
 
     if (!currentOrderId)
       return;
@@ -60,7 +67,56 @@ export default function TrackOrder() {
       unsubscribe();
 
   }, []);
+const saveDeliveryNote =
+  async () => {
 
+    if (
+      !deliveryNote.trim()
+    ) {
+      alert(
+        "Please enter instructions"
+      );
+      return;
+    }
+
+    try {
+
+      setSavingNote(true);
+
+      await updateDoc(
+
+        doc(
+          db,
+          "orders",
+          currentOrderId
+        ),
+
+        {
+          "customerDetails.notes":
+            deliveryNote,
+        }
+
+      );
+
+      alert(
+        "Instructions sent to vendor"
+      );
+
+    } 
+   catch (error) {
+
+  console.error(error);
+
+  alert(error.message);
+
+}
+    finally {
+
+      setSavingNote(false);
+
+    }
+
+  };
   return (
 
     <div className="min-h-screen bg-black text-white px-6 py-20">
@@ -203,104 +259,76 @@ export default function TrackOrder() {
 
           </div>
 
-          {/* DELIVERY PARTNER */}
+            {/* DELIVERY PARTNER */}
 
-          <div className="mt-10 bg-[#161616] border border-green-900 rounded-3xl p-6">
+          {order?.status ===
+            "On The Way" &&
+            order?.riderName && (
 
-            <p className="text-gray-400 text-sm">
+            <div className="mt-8 bg-[#111] border border-green-900 rounded-3xl p-6">
 
-              Delivery Partner
+              <h3 className="text-2xl font-black text-green-400">
 
-            </p>
+                🚴 Delivery Partner
 
-            <div className="flex justify-between items-center mt-4">
+              </h3>
 
-              <div>
+              <p className="text-white text-xl mt-4">
 
-                <h3 className="text-2xl font-black text-white">
+                {order.riderName}
 
-                  Hariprakash 🚴
-
-                </h3>
-
-                <p className="text-gray-400 mt-2">
-
-                  Your order is on the way
-
-                </p>
-
-              </div>
+              </p>
 
               <a
-                href="tel:+919999999999"
-                className="bg-green-500 hover:bg-green-600 text-black px-5 py-3 rounded-2xl font-bold"
+
+                href={`tel:${order.riderPhone}`}
+
+                className="inline-block mt-4 bg-green-500 hover:bg-green-600 text-black font-bold px-6 py-3 rounded-xl"
+
               >
 
-                Call
+                Call Rider
 
               </a>
 
             </div>
 
-          </div>
+          )}
 
           {/* DELIVERY INSTRUCTIONS */}
 
-          <div className="mt-8 bg-[#161616] border border-green-900 rounded-3xl p-6">
+          {/* DELIVERY INSTRUCTIONS */}
 
-            <h3 className="text-2xl font-black text-white">
+        <div className="mt-8 bg-[#111] border border-green-900 rounded-3xl p-6">
 
-              Delivery Instructions
+  <h3 className="text-2xl font-black text-white">
+    Delivery Instructions
+  </h3>
 
-            </h3>
+  <textarea
+    value={deliveryNote}
+    onChange={(e) =>
+      setDeliveryNote(
+        e.target.value
+      )
+    }
+    placeholder="Example: Less sugar, extra fruits, call before delivery..."
+    className="w-full mt-5 bg-black border border-green-900 rounded-2xl p-5 text-white outline-none resize-none h-32"
+  />
 
-            <textarea
-              placeholder="Add delivery notes for rider..."
-              className="w-full mt-5 bg-black border border-green-900 rounded-2xl p-5 text-white outline-none resize-none h-32"
-            />
-
-          </div>
-
-          {/* LIVE MAP */}
-
-          <div className="mt-10">
-
-            <h2 className="text-3xl font-black text-green-400 mb-5">
-
-              Live Delivery Tracking
-
-            </h2>
-
-          <div
-  className="rounded-[35px] overflow-hidden border border-green-900"
-  style={{
-    height: "320px",
-    width: "100%",
-  }}
->
-
- <iframe
-  title="Live Delivery Tracking"
-  src={`https://www.google.com/maps?q=${
-  order?.riderLocation?.lat ||
-  12.9716
-},${
-  order?.riderLocation?.lng ||
-  77.5946
-}&z=14&output=embed`}
-  width="100%"
-  height="320"
-  style={{
-    border: 0,
-  }}
-  allowFullScreen=""
-  loading="lazy"
-  referrerPolicy="no-referrer-when-downgrade"
-/>
+  <button
+    onClick={saveDeliveryNote}
+    disabled={savingNote}
+    className="mt-4 bg-green-500 hover:bg-green-600 text-black font-bold px-6 py-3 rounded-xl"
+  >
+    {savingNote
+      ? "Saving..."
+      : "Submit Instructions"}
+  </button>
 
 </div>
 
-          </div>
+        
 
         </div>
 

@@ -1,127 +1,84 @@
 import React from "react";
 
 import {
-  createUserWithEmailAndPassword,
-  sendEmailVerification,
+  auth,
+} from "../firebase";
+
+import {
+  RecaptchaVerifier,
+  signInWithPhoneNumber,
 } from "firebase/auth";
 
 import {
-  doc,
-  setDoc,
-} from "firebase/firestore";
-
-import {
-  auth,
-  db,
-} from "../firebase";
-
-import { useNavigate }
-  from "react-router-dom";
+  useNavigate,
+} from "react-router-dom";
 
 export default function Signup() {
 
   const navigate =
     useNavigate();
 
-  const [name, setName] =
+  const [phone,
+    setPhone] =
     React.useState("");
 
-  const [email, setEmail] =
+  const [otp,
+    setOtp] =
     React.useState("");
 
-  const [password, setPassword] =
-    React.useState("");
-
-  const [location, setLocation] =
-    React.useState("");
-
-  const [coordinates,
-    setCoordinates] =
-    React.useState({
-
-      latitude: null,
-      longitude: null,
-
-    });
+  const [confirmationResult,
+    setConfirmationResult] =
+    React.useState(null);
 
   const [loading,
     setLoading] =
     React.useState(false);
 
-  const getCurrentLocation =
+  // SETUP RECAPTCHA
+
+  const setupRecaptcha =
     () => {
 
       if (
-        !navigator.geolocation
+        !window.recaptchaVerifier
       ) {
+if (window.recaptchaVerifier) {
 
-        alert(
-          "Geolocation not supported"
-        );
+  window.recaptchaVerifier.clear();
 
-        return;
+}
+        window.recaptchaVerifier =
+          new RecaptchaVerifier(
+
+            auth,
+
+            "recaptcha-container",
+
+            {
+
+              size: "invisible",
+
+              callback: () => {},
+
+            }
+
+          );
 
       }
 
-      navigator.geolocation.getCurrentPosition(
-
-        (position) => {
-
-          const latitude =
-            position.coords.latitude;
-
-          const longitude =
-            position.coords.longitude;
-
-          setCoordinates({
-
-            latitude,
-            longitude,
-
-          });
-
-          localStorage.setItem(
-
-            "userCoordinates",
-
-            JSON.stringify({
-
-              latitude,
-              longitude,
-
-            })
-
-          );
-
-          setLocation(
-            `Lat: ${latitude}, Lng: ${longitude}`
-          );
-
-        },
-
-        () => {
-
-          alert(
-            "Unable to fetch location"
-          );
-
-        }
-
-      );
-
     };
 
-  const handleSignup =
+  // SEND OTP
+
+  const sendOTP =
     async () => {
 
       if (
-        !name ||
-        !email ||
-        !password
+        phone.length < 10
       ) {
 
         alert(
-          "Fill all fields"
+          "Enter valid phone number"
         );
 
         return;
@@ -132,162 +89,180 @@ export default function Signup() {
 
         setLoading(true);
 
-        const userCredential =
-          await createUserWithEmailAndPassword(
+        setupRecaptcha();
+
+        const appVerifier =
+          window.recaptchaVerifier;
+
+        const result =
+          await signInWithPhoneNumber(
 
             auth,
 
-            email,
+            `+91${phone}`,
 
-            password
+            appVerifier
 
           );
 
-        const user =
-          userCredential.user;
-await sendEmailVerification(
-  user
-);
-        await setDoc(
-
-          doc(
-            db,
-            "users",
-            user.uid
-          ),
-
-          {
-
-            uid:
-              user.uid,
-
-            name,
-
-            email,
-
-            location,
-
-            coordinates,
-
-            createdAt:
-              new Date(),
-
-          }
-
+        setConfirmationResult(
+          result
         );
 
         alert(
-  "Verification email sent 📩 Please verify your email before login."
-);
-
-        navigate("/menu");
+          "OTP Sent Successfully"
+        );
 
       } catch (error) {
 
+        console.log(error);
+
         alert(
-          error.message
+          "Failed to send OTP"
         );
 
-      } finally {
+      }
 
-        setLoading(false);
+      setLoading(false);
+
+    };
+
+  // VERIFY OTP
+
+  const verifyOTP =
+    async () => {
+
+      if (!otp) {
+
+        alert(
+          "Enter OTP"
+        );
+
+        return;
 
       }
+
+      try {
+
+        setLoading(true);
+
+      await confirmationResult.confirm(
+  otp
+);
+
+localStorage.setItem(
+  "cutsUserLoggedIn",
+  "true"
+);
+
+localStorage.setItem(
+  "cutsUserPhone",
+  phone
+);
+
+navigate("/menu");
+
+      } catch (error) {
+
+        console.log(error);
+
+        alert(
+          "Invalid OTP"
+        );
+
+      }
+
+      setLoading(false);
 
     };
 
   return (
 
-    <div className="min-h-screen bg-black text-white flex items-center justify-center px-6">
+    <div className="min-h-screen bg-black flex items-center justify-center px-4">
 
-      <div className="w-full max-w-xl bg-[#0d0d0d] border border-green-900 rounded-[35px] p-10">
+      <div className="w-full max-w-xl bg-[#111111] border border-green-900 rounded-[40px] p-10">
 
-        <h1 className="text-5xl font-black text-green-400 text-center">
+        <h1 className="text-6xl font-black text-green-400 text-center">
 
-          Create Account
+          Login
 
         </h1>
 
-        <p className="text-gray-400 text-center mt-5 text-lg">
+        <p className="text-gray-400 text-center mt-5">
 
-          Signup to continue ordering
+          Continue with Phone Number
 
         </p>
 
-        <div className="mt-10 space-y-6">
+        {/* PHONE */}
 
-          <input
-            type="text"
-            placeholder="Full Name"
-            value={name}
-            onChange={(e) =>
-              setName(
-                e.target.value
-              )
-            }
-            className="w-full bg-black border border-green-900 rounded-2xl px-6 py-4 outline-none"
-          />
+        <input
+          type="text"
+          placeholder="Enter Phone Number"
+          value={phone}
+          onChange={(e) =>
+            setPhone(
+              e.target.value
+            )
+          }
+          className="w-full mt-10 bg-black border border-green-900 rounded-2xl px-6 py-5 text-white outline-none"
+        />
 
-          <input
-            type="email"
-            placeholder="Email Address"
-            value={email}
-            onChange={(e) =>
-              setEmail(
-                e.target.value
-              )
-            }
-            className="w-full bg-black border border-green-900 rounded-2xl px-6 py-4 outline-none"
-          />
+        {/* SEND OTP */}
 
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) =>
-              setPassword(
-                e.target.value
-              )
-            }
-            className="w-full bg-black border border-green-900 rounded-2xl px-6 py-4 outline-none"
-          />
+        {!confirmationResult && (
 
           <button
-            onClick={
-              getCurrentLocation
-            }
-            className="w-full bg-[#1a1a1a] border border-green-900 text-white py-4 rounded-2xl font-bold"
-          >
-
-            Use Current Location 📍
-
-          </button>
-
-          {location && (
-
-            <p className="text-green-400 text-sm">
-
-              {location}
-
-            </p>
-
-          )}
-
-          <button
-            onClick={
-              handleSignup
-            }
+            onClick={sendOTP}
             disabled={loading}
-            className="w-full bg-green-500 hover:bg-green-600 text-black py-4 rounded-2xl font-black text-xl"
+            className="w-full mt-6 bg-green-500 hover:bg-green-600 text-black py-5 rounded-2xl text-xl font-bold transition"
           >
 
             {loading
-              ? "Creating..."
-              : "Create Account"}
+              ? "Sending..."
+              : "Send OTP"}
 
           </button>
 
-        </div>
+        )}
+
+        {/* OTP INPUT */}
+
+        {confirmationResult && (
+
+          <>
+
+            <input
+              type="text"
+              placeholder="Enter OTP"
+              value={otp}
+              onChange={(e) =>
+                setOtp(
+                  e.target.value
+                )
+              }
+              className="w-full mt-8 bg-black border border-green-900 rounded-2xl px-6 py-5 text-white outline-none"
+            />
+
+            <button
+              onClick={verifyOTP}
+              disabled={loading}
+              className="w-full mt-6 bg-green-500 hover:bg-green-600 text-black py-5 rounded-2xl text-xl font-bold transition"
+            >
+
+              {loading
+                ? "Verifying..."
+                : "Verify OTP"}
+
+            </button>
+
+          </>
+
+        )}
+
+        <div
+          id="recaptcha-container"
+        />
 
       </div>
 
