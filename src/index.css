@@ -1,3 +1,122 @@
 @import "tailwindcss";html {
   scroll-behavior: smooth;
 }
+/* SPLASH SCREEN */
+
+.splash-screen {
+  position: fixed;
+  inset: 0;
+  background: black;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 99999;
+}
+
+.splash-logo {
+  width: 180px;
+  opacity: 0.15;
+  position: absolute;
+}
+
+.cuts-container {
+  display: flex;
+  gap: 12px;
+  position: relative;
+  z-index: 2;
+}
+
+.letter {
+  font-size: 90px;
+  font-weight: 900;
+  color: white;
+
+  text-shadow:
+    0 0 10px #00ff66,
+    0 0 20px #00ff66,
+    0 0 40px #00ff66;
+
+  animation-duration: 1.5s;
+  animation-fill-mode: forwards;
+}
+
+.c {
+  animation-name: slideLeft;
+}
+
+.u {
+  animation-name: slideTop;
+}
+
+.t {
+  animation-name: slideRight;
+}
+
+.s {
+  animation-name: slideBottom;
+}
+
+.tagline {
+  margin-top: 25px;
+  color: #00ff66;
+  font-size: 20px;
+  font-weight: 700;
+
+  opacity: 0;
+
+  animation:
+    fadeIn 1s ease forwards;
+
+  animation-delay: 1.5s;
+}
+
+@keyframes slideLeft {
+  from {
+    transform: translateX(-500px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideTop {
+  from {
+    transform: translateY(-500px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideRight {
+  from {
+    transform: translateX(500px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideBottom {
+  from {
+    transform: translateY(500px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
