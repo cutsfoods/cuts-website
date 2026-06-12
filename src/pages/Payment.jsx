@@ -44,7 +44,7 @@ const handleRazorpayPayment = async () => {
   try {
 console.log(finalTotal);
     const response = await fetch(
-      "http://127.0.0.1:5000/create-order",
+      "https://cuts-backend.onrender.com/create-order",
       {
         method: "POST",
 
