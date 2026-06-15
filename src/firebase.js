@@ -36,7 +36,15 @@ const firebaseConfig = {
       .VITE_FIREBASE_APP_ID,
 
 };
+console.log(
+  "Firebase API Key:",
+  import.meta.env.VITE_FIREBASE_API_KEY
+);
 
+console.log(
+  "Firebase Auth Domain:",
+  import.meta.env.VITE_FIREBASE_AUTH_DOMAIN
+);
 const app =
   initializeApp(
     firebaseConfig
