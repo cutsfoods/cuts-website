@@ -39,6 +39,7 @@ const firebaseConfig = {
 console.log("ALL ENV:", import.meta.env);
 console.log("TEST:", import.meta.env.VITE_TEST);
 console.log("FIREBASE:", import.meta.env.VITE_FIREBASE_API_KEY);
+console.log("TEST VARIABLE:", import.meta.env.VITE_TEST);
 
 const app =
   initializeApp(
