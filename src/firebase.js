@@ -36,6 +36,7 @@ const firebaseConfig = {
       .VITE_FIREBASE_APP_ID,
 
 };
+console.log("========== ENV TEST ==========");
 console.log("ALL ENV:", import.meta.env);
 console.log("TEST:", import.meta.env.VITE_TEST);
 console.log("FIREBASE:", import.meta.env.VITE_FIREBASE_API_KEY);
