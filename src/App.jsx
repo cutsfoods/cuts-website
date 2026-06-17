@@ -74,12 +74,21 @@ import SplashScreen from "./components/SplashScreen";
 
 export default function App() {
 const [showSplash, setShowSplash] =
-  useState(true);
+  useState(
+    !sessionStorage.getItem("splashShown")
+  );
 
 useEffect(() => {
 
+  if (!showSplash) return;
+
   const timer =
     setTimeout(() => {
+
+      sessionStorage.setItem(
+        "splashShown",
+        "true"
+      );
 
       setShowSplash(false);
 
@@ -88,7 +97,7 @@ useEffect(() => {
   return () =>
     clearTimeout(timer);
 
-}, []);
+}, [showSplash]);
 if (showSplash) {
 
   return <SplashScreen />;
