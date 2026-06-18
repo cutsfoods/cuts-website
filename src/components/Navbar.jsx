@@ -386,28 +386,32 @@ export default function Navbar() {
   <div className="md:hidden bg-black border-t border-green-900 flex flex-col text-white">
 
     <Link
-      to="/"
-      className="px-6 py-4 border-b border-green-900"
-    >
-      Home
-    </Link>
+  to="/"
+  onClick={() => setMobileMenuOpen(false)}
+  className="px-6 py-4 border-b border-green-900"
+>
+  Home
+</Link>
 
     <Link
-      to={user ? "/menu" : "/signup"}
-      className="px-6 py-4 border-b border-green-900"
-    >
-      Menu
-    </Link>
+  to={user ? "/menu" : "/signup"}
+  onClick={() => setMobileMenuOpen(false)}
+  className="px-6 py-4 border-b border-green-900"
+>
+  Menu
+</Link>
 
     <a
-      href="/#about"
-      className="px-6 py-4 border-b border-green-900"
-    >
+  href="/#about"
+  onClick={() => setMobileMenuOpen(false)}
+  className="px-6 py-4 border-b border-green-900"
+>
       About Us
     </a>
 
     <a
       href="/#contact"
+      onClick={() => setMobileMenuOpen(false)}
       className="px-6 py-4 border-b border-green-900"
     >
       Contact
@@ -421,10 +425,11 @@ export default function Navbar() {
     </button>
 
     {!user ? (
-      <Link
-        to="/signup"
-        className="px-6 py-4"
-      >
+     <Link
+  to="/signup"
+  onClick={() => setMobileMenuOpen(false)}
+  className="px-6 py-4"
+>
         Login
       </Link>
     ) : (
@@ -433,7 +438,9 @@ export default function Navbar() {
           await signOut(auth);
           window.location.href = "/";
         }}
+        
         className="px-6 py-4 text-left text-red-400"
+        
       >
         Logout
       </button>
