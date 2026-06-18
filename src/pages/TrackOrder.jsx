@@ -14,6 +14,7 @@ import {
 
 export default function TrackOrder() {
 
+
   const [order,
     setOrder] =
     React.useState(null);
@@ -26,7 +27,10 @@ const [deliveryNote, setDeliveryNote] =
 
 const [savingNote, setSavingNote] =
   React.useState(false);
+    const [submitted, setSubmitted] = useState(false);
+
   React.useEffect(() => {
+    
 
     
 
@@ -76,6 +80,7 @@ const saveDeliveryNote =
       alert(
         "Please enter instructions"
       );
+     
       return;
     }
 
@@ -111,7 +116,7 @@ const saveDeliveryNote =
 
 }
     finally {
-
+ setSubmitted(true);
       setSavingNote(false);
 
     }
@@ -317,14 +322,20 @@ const saveDeliveryNote =
   />
 
   <button
-    onClick={saveDeliveryNote}
-    disabled={savingNote}
-    className="mt-4 bg-green-500 hover:bg-green-600 text-black font-bold px-6 py-3 rounded-xl"
-  >
-    {savingNote
-      ? "Saving..."
+  onClick={saveDeliveryNote}
+  disabled={savingNote || submitted}
+  className={`mt-4 text-black font-bold px-6 py-3 rounded-xl ${
+    submitted
+      ? "bg-gray-500 cursor-not-allowed"
+      : "bg-green-500 hover:bg-green-600"
+  }`}
+>
+  {savingNote
+    ? "Saving..."
+    : submitted
+      ? "Submitted"
       : "Submit Instructions"}
-  </button>
+</button>
 
 </div>
 
