@@ -54,6 +54,8 @@ export default function Navbar() {
   setShowAccountMenu] =
   useState(false);
 
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   const {
     totalItems,
     totalPrice,
@@ -366,6 +368,80 @@ export default function Navbar() {
         </div>
 
       </div>
+{/* MOBILE MENU BUTTON */}
+
+<button
+  className="md:hidden text-green-400 text-3xl"
+  onClick={() =>
+    setMobileMenuOpen(!mobileMenuOpen)
+  }
+>
+  ☰
+</button>
+
+{/* MOBILE DROPDOWN */}
+
+{mobileMenuOpen && (
+
+  <div className="md:hidden bg-black border-t border-green-900 flex flex-col text-white">
+
+    <Link
+      to="/"
+      className="px-6 py-4 border-b border-green-900"
+    >
+      Home
+    </Link>
+
+    <Link
+      to={user ? "/menu" : "/signup"}
+      className="px-6 py-4 border-b border-green-900"
+    >
+      Menu
+    </Link>
+
+    <a
+      href="/#about"
+      className="px-6 py-4 border-b border-green-900"
+    >
+      About Us
+    </a>
+
+    <a
+      href="/#contact"
+      className="px-6 py-4 border-b border-green-900"
+    >
+      Contact
+    </a>
+
+    <button
+      onClick={handleCartOpen}
+      className="px-6 py-4 border-b border-green-900 text-left"
+    >
+      Cart ({totalItems}) • ₹{totalPrice}
+    </button>
+
+    {!user ? (
+      <Link
+        to="/signup"
+        className="px-6 py-4"
+      >
+        Login
+      </Link>
+    ) : (
+      <button
+        onClick={async () => {
+          await signOut(auth);
+          window.location.href = "/";
+        }}
+        className="px-6 py-4 text-left text-red-400"
+      >
+        Logout
+      </button>
+    )}
+
+  </div>
+
+)}
 
       {/* LOCATION MODAL */}
 
