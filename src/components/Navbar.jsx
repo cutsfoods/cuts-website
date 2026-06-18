@@ -27,7 +27,14 @@ import {
   auth,
 } from "../firebase";
 
+import { useLocation } from "react-router-dom";
+
 export default function Navbar() {
+
+  const location = useLocation();
+  useEffect(() => {
+  setMobileMenuOpen(false);
+}, [location.pathname]);
 
   const navigate =
     useNavigate();
@@ -418,11 +425,14 @@ export default function Navbar() {
     </a>
 
     <button
-      onClick={handleCartOpen}
-      className="px-6 py-4 border-b border-green-900 text-left"
-    >
-      Cart ({totalItems}) • ₹{totalPrice}
-    </button>
+  onClick={() => {
+    setMobileMenuOpen(false);
+    handleCartOpen();
+  }}
+  className="px-6 py-4 border-b border-green-900 text-left"
+>
+  Cart ({totalItems}) • ₹{totalPrice}
+</button>
 
     {!user ? (
      <Link
