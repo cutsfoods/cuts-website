@@ -14,6 +14,11 @@ app.use(cors());
 
 app.use(express.json());
 
+console.log(
+  "RAZORPAY KEY:",
+  process.env.RAZORPAY_KEY_ID
+);
+
 const razorpay = new Razorpay({
 
   key_id:
