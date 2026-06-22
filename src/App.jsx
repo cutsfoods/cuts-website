@@ -66,8 +66,7 @@ import SavedAddresses
 import Terms
   from "./pages/Terms";
 
-import RefundPolicy
-  from "./pages/RefundPolicy";
+
 
 import { useEffect, useState } from "react";
 import SplashScreen from "./components/SplashScreen";  
@@ -246,10 +245,7 @@ if (showSplash) {
   element={<Terms />}
 />
 
-<Route
-  path="/refund-policy"
-  element={<RefundPolicy />}
-/>
+
 
         </Routes>
 
