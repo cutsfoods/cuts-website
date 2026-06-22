@@ -164,7 +164,7 @@ localStorage.removeItem(
       },
 
     };
-
+console.log("RAZORPAY OPTIONS", options);
     const razor = new window.Razorpay(
       options
     );
