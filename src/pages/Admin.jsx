@@ -817,7 +817,7 @@ p-4
 {order.customerDetails?.coordinates && (
 
   <a
-    href={`https://www.google.com/maps?q=${order.customerDetails.coordinates.latitude},${order.customerDetails.coordinates.longitude}`}
+   href={`https://www.google.com/maps?q=${order.customerDetails.coordinates.lat},${order.customerDetails.coordinates.lng}`}
     target="_blank"
     rel="noreferrer"
     className="inline-block mt-6 bg-green-500 hover:bg-green-600 text-black px-6 py-3 rounded-2xl font-black"
