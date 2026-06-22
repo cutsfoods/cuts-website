@@ -464,9 +464,7 @@ export default function Home() {
     Terms & Conditions
   </Link>
 
-  <Link to="/refund-policy">
-    Refund Policy
-  </Link>
+  
 
 </div>
       </div>
